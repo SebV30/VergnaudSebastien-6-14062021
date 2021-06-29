@@ -58,31 +58,47 @@ exports.getAllSauce = (req, res, next) => {
         .catch(error => res.status(400).json({ error }));
 };
 
-//GESTION LIKES & DISLIKES
+
 exports.likeDislikeSauce = (req, res, next) => {
-    const sauceId = req.params.id;
     const userId = req.body.userId;
-    Sauce.findOne({ _id: req.params.id })
+    const like = req.body.like;
+    const sauceId = req.params.id;
+    Sauce.findOne({ _id: sauceId })
         .then(sauce => {
-
-                //DIFFÉRENTS CAS POSSIBLES
-                switch (like) {
-                    case 1:
-                        console.log("l'uitilsateur aime");
-                        break;
-                    case -1:
-                        console.log("l'uitilsateur n'aime pas");
-                        break;
-                    case 0:
-                        console.log("annulation du choix");
-
-                })
-            .catch(error => res.status(404).json({ error }));
-        }
-
-
-
-
-
-
+            // nouvelles valeurs objet likes-dislikes
+            const newValues = {
+                    usersLiked: sauce.usersLiked,
+                    usersDisliked: sauce.usersDisliked,
+                    likes: 0,
+                    dislikes: 0
+                }
+                // Différentes éventualités:
+            switch (like) {
+                case 1: // CAS: liked
+                    newValues.usersLiked.push(userId);
+                    break;
+                case -1: // CAS: disliked
+                    newValues.usersDisliked.push(userId);
+                    break;
+                case 0: // CAS: Annulation du like/dislike
+                    if (newValues.usersLiked.includes(userId)) {
+                        // si on annule le like
+                        const index = newValues.usersLiked.indexOf(userId);
+                        newValues.usersLiked.splice(index, 1);
+                    } else {
+                        // si on annule le dislike
+                        const index = newValues.usersDisliked.indexOf(userId);
+                        newValues.usersDisliked.splice(index, 1);
+                    }
+                    break;
+            };
+            // Calcul du nombre de likes / dislikes
+            newValues.likes = newValues.usersLiked.length;
+            newValues.dislikes = newValues.usersDisliked.length;
+            // Mise à jour de la sauce avec les nouvelles valeurs
+            Sauce.updateOne({ _id: sauceId }, newValues)
+                .then(() => res.status(200).json({ message: 'Sauce notée !' }))
+                .catch(error => res.status(400).json({ error }))
+        })
+        .catch(error => res.status(500).json({ error }));
 }
