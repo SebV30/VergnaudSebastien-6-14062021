@@ -2,11 +2,15 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const sauceRoutes = require('./routes/sauces');
 const userRoutes = require('./routes/user');
+const dotenv = require('dotenv');
+dotenv.config();
 
-mongoose.connect('mongodb+srv://greystone:Seb13101978@sopekocko.8xqb0.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', {
+mongoose.connect('mongodb+srv://' + process.env.DB_PSEUDO + ':' + process.env.DB_PASSWORD + '@sopekocko.8xqb0.mongodb.net/Sauce?retryWrites=true&w=majority', {
         userNewUrlPerser: true,
         useUnifiedTopology: true
     })
@@ -23,6 +27,14 @@ app.use((req, res, next) => {
 });
 
 app.use(bodyParser.json());
+
+app.use(helmet());
+
+const limiter = rateLimit({
+    windowMS: 15 * 60 * 1000, //15 minutes
+    max: 100 //limite à 100 requêtes, pour chaque IP, par tranche de 15 minutes (windowMS)
+})
+
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
