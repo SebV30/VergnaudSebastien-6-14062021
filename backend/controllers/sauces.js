@@ -20,10 +20,25 @@ exports.createSauce = (req, res, next) => {
 
 //MODIFICATION SAUCE
 exports.modifySauce = (req, res, next) => {
-    let sauceObject = req.file ? {
-        ...JSON.parse(req.body.sauce),
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-    } : {...req.body };
+    let sauceObject = {};
+    req.file ? (
+        //Si update contient une modification d'image
+        Sauce.findOne({
+            _id: req.params.id
+        })
+        .then((sauce) => {
+            //Suppression image existante du serveur
+            const filename = sauce.imageUrl.split('/images/')[1];
+            fs.unlinkSync(`images/${filename}`);
+        }),
+        sauceObject = {
+            //Modification des données et ajout de la nouvelle image
+            ...JSON.parse(req.body.sauce),
+            imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        }) : ( //Update ne contient pas de nouvelle image
+        sauceObject = {
+            ...req.body
+        });
     Sauce.updateOne({ _id: req.params.id }, {...sauceObject, _id: req.params.id })
         .then(() => res.status(200).json({ message: 'Sauce modifiée' }))
         .catch(error => res.status(400).json({ error }));
