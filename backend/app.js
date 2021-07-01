@@ -16,6 +16,12 @@ mongoose.connect('mongodb+srv://' + process.env.DB_PSEUDO + ':' + process.env.DB
     })
     .then(() => console.log('Connexion à MongoDB réussie'))
     .catch(() => console.log('Connexion à MongoDB échouée'));
+mongoose.connect('mongodb+srv://' + process.env.DB_PSEUDO_SECOND_ACCESS + ':' + process.env.DB_PASSWORD_SECOND_ACCESS + '@sopekocko.8xqb0.mongodb.net/Sauce?retryWrites=true&w=majority', {
+        userNewUrlPerser: true,
+        useUnifiedTopology: true
+    })
+    .then(() => console.log('Connexion à MongoDB réussie'))
+    .catch(() => console.log('Connexion à MongoDB échouée'));
 
 const app = express();
 
